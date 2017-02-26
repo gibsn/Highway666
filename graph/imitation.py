@@ -7,6 +7,8 @@ HEIGHT = 320
 DISPLAY = (WIDTH, HEIGHT)
 
 FPS = 60
+FPS_FONT_SIZE = 25
+FPS_COLOUR = "#F5F53B"
 
 BACKGROUND_COLOR = "#004400"
 
@@ -14,6 +16,11 @@ BACKGROUND_COLOR = "#004400"
 class Imitation:
     def __init__(self, speed_inf, speed_sup, spawn_inf, spawn_sup, slow_factor, slow_time):
         pygame.init()
+
+        if not pygame.font:
+            print('Warning, fonts disabled')
+        if not pygame.mixer:
+            print('Warning, sound disabled')
 
         self.screen = pygame.display.set_mode(DISPLAY)
         pygame.display.set_caption("Highway666 by Kirill Alekseev")
@@ -23,9 +30,14 @@ class Imitation:
 
         self.clock = pygame.time.Clock()
 
-    def handle_quit(self):
+    def __handle_quit(self):
         print("Got 'quit' from pygame, stopping imitation")
         pygame.display.quit()
+
+    def __show_fps(self):
+        font = pygame.font.Font(None, FPS_FONT_SIZE)
+        text = font.render("FPS: %.2f" % (self.clock.get_fps()), 1, pygame.Color(FPS_COLOUR))
+        self.screen.blit(text, (0, 0))
 
     def loop(self):
         while True:
@@ -34,8 +46,10 @@ class Imitation:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or \
                    event.type == pygame.KEYDOWN and event.key == pygame.K_q:
-                    self.handle_quit()
+                    self.__handle_quit()
                     return
 
             self.screen.blit(self.background, (0, 0))
+            self.__show_fps()
+
             pygame.display.update()
