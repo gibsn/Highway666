@@ -1,3 +1,6 @@
+#!/usr/local/bin/python3
+
+
 from gui.config import ConfigGui
 
 if __name__ == "__main__":

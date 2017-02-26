@@ -38,31 +38,43 @@ class ConfigGui():
 
         self.speed_inf_label = Label(self.speed_inf_frame, text='Min initial speed:')
         self.speed_inf = Spinbox(self.speed_inf_frame, from_=0, to=200, width=4)
+        self.speed_inf.delete(0, 1)
+        self.speed_inf.insert(0, 30)
         self.speed_inf_label.pack(side='left')
         self.speed_inf.pack(side='right')
 
         self.speed_sup_label = Label(self.speed_sup_frame, text='Max initial speed:')
         self.speed_sup = Spinbox(self.speed_sup_frame, from_=0, to=200, width=4)
         self.speed_sup_label.pack(side='left')
+        self.speed_sup.delete(0, 1)
+        self.speed_sup.insert(0, 60)
         self.speed_sup.pack(side='right')
 
         self.spawn_inf_label = Label(self.spawn_inf_frame, text='Min spawn interval:')
         self.spawn_inf = Spinbox(self.spawn_inf_frame, from_=0, to=10, width=4)
+        self.spawn_inf.delete(0, 1)
+        self.spawn_inf.insert(0, 1)
         self.spawn_inf_label.pack(side='left')
         self.spawn_inf.pack(side='right')
 
         self.spawn_sup_label = Label(self.spawn_sup_frame, text='Max spawn interval:')
         self.spawn_sup = Spinbox(self.spawn_sup_frame, from_=0, to=10, width=4)
+        self.spawn_sup.delete(0, 1)
+        self.spawn_sup.insert(0, 5)
         self.spawn_sup_label.pack(side='left')
         self.spawn_sup.pack(side='right')
 
         self.slow_factor_label = Label(self.slow_factor_frame, text='Slowing factor:')
         self.slow_factor = Spinbox(self.slow_factor_frame, from_=0, to=1, width=4, increment=0.1)
+        self.slow_factor.delete(0, 3)
+        self.slow_factor.insert(0, 0.5)
         self.slow_factor_label.pack(side='left')
         self.slow_factor.pack(side='right')
 
         self.slow_time_label = Label(self.slow_time_frame, text='Slowing time (s):')
         self.slow_time = Spinbox(self.slow_time_frame, from_=0, to=10, width=4)
+        self.slow_time.delete(0, 1)
+        self.slow_time.insert(0, 5)
         self.slow_time_label.pack(side='left')
         self.slow_time.pack(side='right')
 
