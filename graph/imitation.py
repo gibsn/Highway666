@@ -1,8 +1,7 @@
 import pygame
 from pygame.locals import *
 
-from model import road
-from graph import moving_object
+from model import road, car
 
 
 WIDTH = 640
@@ -37,7 +36,7 @@ class Imitation:
         self.environment = pygame.sprite.RenderUpdates(self.road)
 
 #TODO get rid of this
-        self.car = moving_object.MovingObject((0, 100), (100, 0), (1, 0), 10, 10, "blue")
+        self.car = car.Car((0, 100), (100, 0), 10, 10)
         self.cars = pygame.sprite.RenderUpdates(self.car)
 
     def __handle_quit(self):
@@ -63,6 +62,12 @@ class Imitation:
 
         return updates
 
+    def __remove_gone_cars(self):
+        for car in self.cars:
+            x, y = car.rect.topleft
+            if x > WIDTH or y > HEIGHT:
+                car.kill()
+
     def loop(self):
         while True:
             self.clock.tick(60)
@@ -72,6 +77,8 @@ class Imitation:
                    event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                     self.__handle_quit()
                     return
+
+            self.__remove_gone_cars()
 
             self.screen.blit(self.background, (0, 0))
 
