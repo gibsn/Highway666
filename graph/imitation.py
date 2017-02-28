@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 
 from model import road
+from graph import moving_object
 
 
 WIDTH = 640
@@ -33,8 +34,11 @@ class Imitation:
         self.clock = pygame.time.Clock()
 
         self.road = road.Road(WIDTH, HEIGHT)
-
         self.environment = pygame.sprite.RenderUpdates(self.road)
+
+#TODO get rid of this
+        self.car = moving_object.MovingObject((0, 100), (100, 0), (1, 0), 10, 10, "blue")
+        self.cars = pygame.sprite.RenderUpdates(self.car)
 
     def __handle_quit(self):
         print("Got 'quit' from pygame, stopping imitation")
@@ -49,9 +53,13 @@ class Imitation:
 
     def __get_updates(self):
         updates = []
+        time_passed = self.clock.get_time() / 1000.0
 
         self.environment.update()
         updates += self.environment.draw(self.screen)
+
+        self.cars.update(time_passed)
+        updates += self.cars.draw(self.screen)
 
         return updates
 
