@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 
+from model import road
+
 
 WIDTH = 640
 HEIGHT = 320
@@ -30,6 +32,10 @@ class Imitation:
 
         self.clock = pygame.time.Clock()
 
+        self.road = road.Road(WIDTH, HEIGHT)
+
+        self.environment = pygame.sprite.RenderUpdates(self.road)
+
     def __handle_quit(self):
         print("Got 'quit' from pygame, stopping imitation")
         pygame.display.quit()
@@ -38,6 +44,16 @@ class Imitation:
         font = pygame.font.Font(None, FPS_FONT_SIZE)
         text = font.render("FPS: %.2f" % (self.clock.get_fps()), 1, pygame.Color(FPS_COLOUR))
         self.screen.blit(text, (0, 0))
+
+        return text.get_rect()
+
+    def __get_updates(self):
+        updates = []
+
+        self.environment.update()
+        updates += self.environment.draw(self.screen)
+
+        return updates
 
     def loop(self):
         while True:
@@ -50,6 +66,8 @@ class Imitation:
                     return
 
             self.screen.blit(self.background, (0, 0))
-            self.__show_fps()
 
-            pygame.display.update()
+            updates = self.__get_updates()
+            updates.append(self.__show_fps())
+
+            pygame.display.update(updates)
