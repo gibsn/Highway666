@@ -29,6 +29,7 @@ class Imitation:
         self.spawn_inf, self.spawn_sup = spawn_inf, spawn_sup
         self.slow_factor, self.slow_time = slow_factor, slow_time
 
+        pygame.mixer.pre_init(frequency=44100, channels=8)
         pygame.init()
 
         self.screen = pygame.display.set_mode(DISPLAY)
@@ -37,7 +38,7 @@ class Imitation:
         self.__loadCarSprites()
         self.__initGrass()
 
-        self.explosion_sound = pygame.mixer.Sound(file="sounds/explosion.ogg")
+        self.__initSounds()
 
         self.clock = pygame.time.Clock()
 
@@ -67,9 +68,19 @@ class Imitation:
         self.car_images = [pygame.image.load(path).convert_alpha() for path in paths]
         self.car_images = list(map(lambda a: pygame.transform.rotate(a, -90), self.car_images))
 
+    def __initSounds(self):
+        self.explosion_sound = pygame.mixer.Sound(file="sounds/explosion.ogg")
+        self.birds_sound = pygame.mixer.Sound(file="sounds/birds.ogg")
+        self.car_sounds = [pygame.mixer.Sound(file="sounds/car_"+n+".ogg") for n in ["1", "2", "3"]]
+
+        self.birds_sound.play(loops=-1)
+
     def __spawnCarHandler(self):
         newCar = self.road.spawnCar(self.speed_inf, self.speed_sup, random.choice(self.car_images))
         self.cars.add(newCar)
+
+        newCar.sound = random.choice(self.car_sounds)
+        newCar.sound.play(loops=-1)
 
         time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
         pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)

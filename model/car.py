@@ -9,6 +9,12 @@ class Car(moving_object.MovingObject):
 
         self.wanted_speed = speed
 
+    def kill(self):
+        super(Car, self).kill()
+        self.sound.fadeout(1000)
+
     def crash(self):
+        self.sound.stop()
+
         self.speed = np.array([0, 0], np.float64)
         self.acceleration = np.array([0, 0], np.float64)
