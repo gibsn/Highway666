@@ -6,10 +6,10 @@ from model import car
 
 class Road(static_object.StaticObject):
     def __init__(self, topleft, width, height, image=None):
-            static_object.StaticObject.__init__(self, topleft, width, height, "grey", image)
+        static_object.StaticObject.__init__(self, topleft, width, height, "grey", image)
 
-            self.topleft = topleft
-            self.shape = (width, height)
+        self.topleft = topleft
+        self.shape = (width, height)
 
     def spawnCar(self, min_speed, max_speed, image):
         speed = (random.randint(min_speed, max_speed)*2, 0)

@@ -37,6 +37,8 @@ class Imitation:
         self.__loadCarSprites()
         self.__initGrass()
 
+        self.explosion_sound = pygame.mixer.Sound(file="sounds/explosion.ogg")
+
         self.clock = pygame.time.Clock()
 
         self.road = road.Road((0, HEIGHT/6.0), WIDTH, HEIGHT*2/3.0)
@@ -74,7 +76,7 @@ class Imitation:
 
     def __quitHandler(self):
         print("Got 'quit' from pygame, stopping imitation")
-        pygame.display.quit()
+        pygame.quit()
 
     def __showFps(self):
         font = pygame.font.Font(None, FPS_FONT_SIZE)
@@ -97,6 +99,15 @@ class Imitation:
 
         return updates
 
+    def __checkCrashes(self):
+        collisions = pygame.sprite.groupcollide(self.cars, self.cars, False, False)
+
+        for k, v in collisions.iteritems():
+            for car in v:
+                if k != car:
+                    k.crash(), car.crash()
+                    self.explosion_sound.play()
+
     def __removeGoneCars(self):
         for c in self.cars:
             x, y = c.rect.topleft
@@ -115,6 +126,7 @@ class Imitation:
                 elif event.type == SPAWN_CAR_EVENT:
                     self.__spawnCarHandler()
 
+            self.__checkCrashes()
             self.__removeGoneCars()
 
             updates = self.__getUpdates()
