@@ -1,6 +1,6 @@
 import threading
 import sys
-from tkinter import Frame, Button, Label, Spinbox, X, Tk
+from Tkinter import Frame, Button, Label, Spinbox, X, Tk
 
 from graph.imitation import Imitation
 

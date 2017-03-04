@@ -13,7 +13,7 @@ class Road(static_object.StaticObject):
 
     def spawnCar(self, min_speed, max_speed, image):
         speed = (random.randint(min_speed, max_speed)*2, 0)
-        width, height = 10, 10
-        car_topleft = 0, self.topleft[1] + self.shape[1]/2 - height/2
+        width, height = image.get_size()
+        car_topleft = -width, self.topleft[1] + self.shape[1]/2 - height/2
 
-        return car.Car(car_topleft, speed, width, height)
+        return car.Car(car_topleft, speed, width, height, image)

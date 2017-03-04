@@ -13,10 +13,7 @@ class MovingObject(graph_object.GraphObject):
     def __init__(self, topleft, speed, acc,
                  width=0, height=0, colour="blue",
                  image=None):
-        if image:
-            graph_object.GraphObject.__init__(self, topleft, image)
-        else:
-            graph_object.GraphObject.__init__(self, topleft, width, height, colour)
+        graph_object.GraphObject.__init__(self, topleft, width, height, colour, image)
 
         self.speed = np.array(speed, np.float64) * MAGIC
         self.acceleration = np.array(acc, np.float64) * MAGIC

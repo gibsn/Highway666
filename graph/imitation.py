@@ -1,4 +1,5 @@
 import random
+import os
 
 import pygame
 from pygame.locals import *
@@ -40,16 +41,27 @@ class Imitation:
         self.background = pygame.Surface(DISPLAY)
         self.background.fill(pygame.Color(BACKGROUND_COLOR))
 
+        self.__loadSprites()
+
         self.clock = pygame.time.Clock()
 
         self.road = road.Road((0, HEIGHT/6.0), WIDTH, HEIGHT*2/3.0)
         self.environment = pygame.sprite.RenderUpdates(self.road)
 
         self.cars = pygame.sprite.RenderUpdates()
-        self.cars.add(self.road.spawnCar(speed_inf, speed_sup, None))
+        self.cars.add(self.road.spawnCar(speed_inf, speed_sup, random.choice(self.car_images)))
 
         time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
         pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+
+    def __loadSprites(self):
+        colours = ["black", "blue", "green", "red", "yellow"]
+        nums = ["1", "2", "3", "4", "5"]
+        path = "sprites/Cars/car_"
+        paths = [os.path.join(path+c+"_"+n+".png") for c in colours for n in nums]
+
+        self.car_images = [pygame.image.load(path).convert_alpha() for path in paths]
+        self.car_images = list(map(lambda a: pygame.transform.rotate(a, -90), self.car_images))
 
     def __handleQuit(self):
         print("Got 'quit' from pygame, stopping imitation")
@@ -90,7 +102,8 @@ class Imitation:
                     self.__handleQuit()
                     return
                 elif event.type == SPAWN_CAR_EVENT:
-                    self.cars.add(self.road.spawnCar(self.speed_inf, self.speed_sup, None))
+                    image = random.choice(self.car_images)
+                    self.cars.add(self.road.spawnCar(self.speed_inf, self.speed_sup, image))
 
                     time_to_next_spawn = random.randint(self.spawn_inf*MS, self.spawn_sup*MS)
                     pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
