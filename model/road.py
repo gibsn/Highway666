@@ -16,4 +16,4 @@ class Road(static_object.StaticObject):
         width, height = image.get_size()
         car_topleft = -width, self.topleft[1] + self.shape[1]/2 - height/2
 
-        return car.Car(car_topleft, speed, width, height, image)
+        return car.Car(car_topleft, speed, image=image)

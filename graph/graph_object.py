@@ -3,7 +3,7 @@ from pygame.locals import *
 
 
 class GraphObject(pygame.sprite.Sprite):
-    def __init__(self, topleft, width, height, colour, image=None):
+    def __init__(self, topleft, width=0, height=0, colour="", image=None):
         pygame.sprite.Sprite.__init__(self)
 
         if image:

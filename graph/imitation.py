@@ -5,6 +5,7 @@ import pygame
 from pygame.locals import *
 
 from model import road, car
+from graph import static_object
 
 
 WIDTH = 640
@@ -30,18 +31,11 @@ class Imitation:
 
         pygame.init()
 
-        if not pygame.font:
-            print('Warning, fonts disabled')
-        if not pygame.mixer:
-            print('Warning, sound disabled')
-
         self.screen = pygame.display.set_mode(DISPLAY)
         pygame.display.set_caption("Highway666 by Kirill Alekseev")
 
-        self.background = pygame.Surface(DISPLAY)
-        self.background.fill(pygame.Color(BACKGROUND_COLOR))
-
-        self.__loadSprites()
+        self.__loadCarSprites()
+        self.__initGrass()
 
         self.clock = pygame.time.Clock()
 
@@ -49,21 +43,36 @@ class Imitation:
         self.environment = pygame.sprite.RenderUpdates(self.road)
 
         self.cars = pygame.sprite.RenderUpdates()
-        self.cars.add(self.road.spawnCar(speed_inf, speed_sup, random.choice(self.car_images)))
+        self.__spawnCarHandler()
 
-        time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
-        pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+    def __initGrass(self):
+        image = pygame.image.load("sprites/Tiles/Grass/land_grass04.png").convert()
+        tile_width, tile_height = image.get_size()
 
-    def __loadSprites(self):
+        self.grass = pygame.sprite.RenderUpdates()
+
+        for i in xrange(WIDTH/tile_width + 1):
+            for j in xrange(HEIGHT/tile_height + 1):
+                topleft = (i * tile_width, j * tile_height)
+                self.grass.add(static_object.StaticObject(topleft, image=image))
+
+    def __loadCarSprites(self):
         colours = ["black", "blue", "green", "red", "yellow"]
         nums = ["1", "2", "3", "4", "5"]
-        path = "sprites/Cars/car_"
-        paths = [os.path.join(path+c+"_"+n+".png") for c in colours for n in nums]
+        prefix = "sprites/Cars/car_"
+        paths = [os.path.join(prefix+c+"_"+n+".png") for c in colours for n in nums]
 
         self.car_images = [pygame.image.load(path).convert_alpha() for path in paths]
         self.car_images = list(map(lambda a: pygame.transform.rotate(a, -90), self.car_images))
 
-    def __handleQuit(self):
+    def __spawnCarHandler(self):
+        newCar = self.road.spawnCar(self.speed_inf, self.speed_sup, random.choice(self.car_images))
+        self.cars.add(newCar)
+
+        time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
+        pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+
+    def __quitHandler(self):
         print("Got 'quit' from pygame, stopping imitation")
         pygame.display.quit()
 
@@ -78,6 +87,8 @@ class Imitation:
         updates = []
         time_passed = self.clock.get_time() / 1000.0
 
+        updates += self.grass.draw(self.screen)
+
         self.environment.update()
         updates += self.environment.draw(self.screen)
 
@@ -87,10 +98,10 @@ class Imitation:
         return updates
 
     def __removeGoneCars(self):
-        for car in self.cars:
-            x, y = car.rect.topleft
+        for c in self.cars:
+            x, y = c.rect.topleft
             if x > WIDTH or y > HEIGHT:
-                car.kill()
+                c.kill()
 
     def loop(self):
         while True:
@@ -99,18 +110,12 @@ class Imitation:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or \
                    event.type == pygame.KEYDOWN and event.key == pygame.K_q:
-                    self.__handleQuit()
+                    self.__quitHandler()
                     return
                 elif event.type == SPAWN_CAR_EVENT:
-                    image = random.choice(self.car_images)
-                    self.cars.add(self.road.spawnCar(self.speed_inf, self.speed_sup, image))
-
-                    time_to_next_spawn = random.randint(self.spawn_inf*MS, self.spawn_sup*MS)
-                    pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+                    self.__spawnCarHandler()
 
             self.__removeGoneCars()
-
-            self.screen.blit(self.background, (0, 0))
 
             updates = self.__getUpdates()
             updates.append(self.__showFps())
