@@ -1,7 +1,9 @@
+import threading
+import sys
 from tkinter import Frame, Button, Label, Spinbox, X, Tk
+
 from graph.imitation import Imitation
 
-import threading
 
 
 class ConfigGui():
@@ -41,17 +43,21 @@ class ConfigGui():
         print("Slowing factor: %s" % (self.slow_factor.get()))
         print("Slowing time: %s" % (self.slow_time.get()))
 
-        # for some reason this crashes
+        # TODO: tkinter is not thread-safe
         # thread = threading.Thread(target=graph.loop.imitate, args=(
         #                             self.speed_inf.get(), self.speed_sup.get(),
         #                             self.spawn_inf.get(), self.spawn_sup.get(),
         #                             self.slow_factor.get(), self.slow_time.get()))
         # thread.start()
 
-        imitation = Imitation(self.speed_inf.get(), self.speed_sup.get(),
-                              self.spawn_inf.get(), self.spawn_sup.get(),
-                              self.slow_factor.get(), self.slow_time.get())
-        imitation.loop()
+        imitation = Imitation(int(self.speed_inf.get()), int(self.speed_sup.get()),
+                              int(self.spawn_inf.get()), int(self.spawn_sup.get()),
+                              float(self.slow_factor.get()), int(self.slow_time.get()))
+        try:
+            imitation.loop()
+        except Exception as e:
+            print(e)
+            sys.exit(1)
 
     def quit(self):
         print("Quitting on user's demand")

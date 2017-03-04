@@ -1,9 +1,19 @@
+import random
+
 from graph import static_object
+from model import car
 
 
 class Road(static_object.StaticObject):
-    def __init__(self, width, height, image=None):
-        if image:
-            static_object.StaticObject.__init__(self, (0, 0), image)
-        else:
-            static_object.StaticObject.__init__(self, (0, 0), width, height, "grey")
+    def __init__(self, topleft, width, height, image=None):
+            static_object.StaticObject.__init__(self, topleft, width, height, "grey", image)
+
+            self.topleft = topleft
+            self.shape = (width, height)
+
+    def spawnCar(self, min_speed, max_speed, image):
+        speed = (random.randint(min_speed, max_speed)*2, 0)
+        width, height = 10, 10
+        car_topleft = 0, self.topleft[1] + self.shape[1]/2 - height/2
+
+        return car.Car(car_topleft, speed, width, height)

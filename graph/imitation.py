@@ -1,3 +1,5 @@
+import random
+
 import pygame
 from pygame.locals import *
 
@@ -14,9 +16,17 @@ FPS_COLOUR = "#F5F53B"
 
 BACKGROUND_COLOR = "#004400"
 
+SPAWN_CAR_EVENT = pygame.USEREVENT + 1
+
+MS = 1000
+
 
 class Imitation:
     def __init__(self, speed_inf, speed_sup, spawn_inf, spawn_sup, slow_factor, slow_time):
+        self.speed_inf, self.speed_sup = speed_inf, speed_sup
+        self.spawn_inf, self.spawn_sup = spawn_inf, spawn_sup
+        self.slow_factor, self.slow_time = slow_factor, slow_time
+
         pygame.init()
 
         if not pygame.font:
@@ -32,25 +42,27 @@ class Imitation:
 
         self.clock = pygame.time.Clock()
 
-        self.road = road.Road(WIDTH, HEIGHT)
+        self.road = road.Road((0, HEIGHT/6.0), WIDTH, HEIGHT*2/3.0)
         self.environment = pygame.sprite.RenderUpdates(self.road)
 
-#TODO get rid of this
-        self.car = car.Car((0, 100), (100, 0), 10, 10)
-        self.cars = pygame.sprite.RenderUpdates(self.car)
+        self.cars = pygame.sprite.RenderUpdates()
+        self.cars.add(self.road.spawnCar(speed_inf, speed_sup, None))
 
-    def __handle_quit(self):
+        time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
+        pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+
+    def __handleQuit(self):
         print("Got 'quit' from pygame, stopping imitation")
         pygame.display.quit()
 
-    def __show_fps(self):
+    def __showFps(self):
         font = pygame.font.Font(None, FPS_FONT_SIZE)
         text = font.render("FPS: %.2f" % (self.clock.get_fps()), 1, pygame.Color(FPS_COLOUR))
         self.screen.blit(text, (0, 0))
 
         return text.get_rect()
 
-    def __get_updates(self):
+    def __getUpdates(self):
         updates = []
         time_passed = self.clock.get_time() / 1000.0
 
@@ -62,7 +74,7 @@ class Imitation:
 
         return updates
 
-    def __remove_gone_cars(self):
+    def __removeGoneCars(self):
         for car in self.cars:
             x, y = car.rect.topleft
             if x > WIDTH or y > HEIGHT:
@@ -75,14 +87,19 @@ class Imitation:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or \
                    event.type == pygame.KEYDOWN and event.key == pygame.K_q:
-                    self.__handle_quit()
+                    self.__handleQuit()
                     return
+                elif event.type == SPAWN_CAR_EVENT:
+                    self.cars.add(self.road.spawnCar(self.speed_inf, self.speed_sup, None))
 
-            self.__remove_gone_cars()
+                    time_to_next_spawn = random.randint(self.spawn_inf*MS, self.spawn_sup*MS)
+                    pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+
+            self.__removeGoneCars()
 
             self.screen.blit(self.background, (0, 0))
 
-            updates = self.__get_updates()
-            updates.append(self.__show_fps())
+            updates = self.__getUpdates()
+            updates.append(self.__showFps())
 
             pygame.display.update(updates)
