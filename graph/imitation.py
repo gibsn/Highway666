@@ -10,8 +10,8 @@ from model.car import CarState
 from graph import static_object
 
 
-WIDTH = 640
-HEIGHT = 320
+WIDTH = 1280
+HEIGHT = 800
 DISPLAY = (WIDTH, HEIGHT)
 
 FPS = 60
@@ -35,22 +35,30 @@ class Imitation:
         pygame.mixer.pre_init(frequency=44100, channels=8)
         pygame.init()
 
-        self.screen = pygame.display.set_mode(DISPLAY)
-        pygame.display.set_caption("Highway666 by Kirill Alekseev")
-
-        self.__loadCarSprites()
-        self.__initGrass()
-
-        self.__initSounds()
-
         self.clock = pygame.time.Clock()
 
+        self.__initDisplay()
+        self.__initSounds()
+        self.__initGrass()
+        self.__initRoad()
+        self.__initCars()
+
+    def __initRoad(self):
         self.road = road.Road((0, HEIGHT/6.0), WIDTH, HEIGHT*2/3.0)
         self.environment = pygame.sprite.RenderUpdates(self.road)
+
+    def __initCars(self):
+        self.__loadCarSprites()
 
         self.cars = pygame.sprite.RenderUpdates()
         self.__spawnCarHandler()
         self.crashed_cars = Queue.Queue()
+
+    def __initDisplay(self):
+        flags = 0
+        flags = pygame.HWSURFACE | pygame.FULLSCREEN | pygame.DOUBLEBUF
+        self.screen = pygame.display.set_mode(DISPLAY, flags)
+        pygame.display.set_caption("Highway666 by Kirill Alekseev")
 
     def __initGrass(self):
         image = pygame.image.load("sprites/Tiles/Grass/land_grass04.png").convert()
@@ -136,7 +144,7 @@ class Imitation:
 
     def loop(self):
         while True:
-            self.clock.tick(60)
+            self.clock.tick(FPS)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or \
