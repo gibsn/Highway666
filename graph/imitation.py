@@ -87,20 +87,6 @@ class Imitation:
 
         self.birds_sound.play(loops=-1)
 
-    def __spawnCarHandler(self):
-        newCar = self.road.spawnCar(self.speed_inf, self.speed_sup, random.choice(self.car_images))
-        self.cars.add(newCar)
-
-        newCar.sound = random.choice(self.car_sounds)
-        newCar.sound.play(loops=-1)
-
-        time_to_next_spawn = random.randint(self.spawn_inf*SEC, self.spawn_sup*SEC)
-        pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
-
-    def __quitHandler(self):
-        print("Got 'quit' from pygame, stopping imitation")
-        pygame.quit()
-
     def __showFps(self):
         font = pygame.font.Font(None, FPS_FONT_SIZE)
         text = font.render("FPS: %.2f" % (self.clock.get_fps()), 1, pygame.Color(FPS_COLOUR))
@@ -142,22 +128,45 @@ class Imitation:
             if x > WIDTH or y > HEIGHT:
                 c.kill()
 
+    def __quitHandler(self):
+        print("Got 'quit' from pygame, stopping imitation")
+        pygame.quit()
+
+    def __spawnCarHandler(self):
+        newCar = self.road.spawnCar(self.speed_inf, self.speed_sup, random.choice(self.car_images))
+        self.cars.add(newCar)
+
+        newCar.sound = random.choice(self.car_sounds)
+        newCar.sound.play(loops=-1)
+
+        time_to_next_spawn = random.randint(self.spawn_inf*SEC, self.spawn_sup*SEC)
+        pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
+
+    def __killCrashedCarHandler(self):
+        if not self.crashed_cars.empty():
+            self.crashed_cars.get().kill()
+        else:
+            pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, 0)
+
+    def __handler(self, event):
+        def default(): pass
+
+        if event.type == pygame.QUIT or\
+           event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+            return self.__quitHandler
+        elif event.type == SPAWN_CAR_EVENT:
+            return self.__spawnCarHandler
+        elif event.type == KILL_CRASHED_CAR_EVENT:
+            return self.__killCrashedCarHandler
+        else:
+            return default
+
     def loop(self):
         while True:
             self.clock.tick(FPS)
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or \
-                   event.type == pygame.KEYDOWN and event.key == pygame.K_q:
-                    self.__quitHandler()
-                    return
-                elif event.type == SPAWN_CAR_EVENT:
-                    self.__spawnCarHandler()
-                elif event.type == KILL_CRASHED_CAR_EVENT:
-                    if not self.crashed_cars.empty():
-                        self.crashed_cars.get().kill()
-                    else:
-                        pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, 0)
+                self.__handler(event)()
 
             self.__checkCrashes()
             self.__removeGoneCars()
