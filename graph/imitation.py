@@ -1,10 +1,12 @@
 import random
 import os
+import Queue
 
 import pygame
 from pygame.locals import *
 
 from model import road, car
+from model.car import CarState
 from graph import static_object
 
 
@@ -16,11 +18,12 @@ FPS = 60
 FPS_FONT_SIZE = 25
 FPS_COLOUR = "#F5F53B"
 
-BACKGROUND_COLOR = "#004400"
-
 SPAWN_CAR_EVENT = pygame.USEREVENT + 1
+KILL_CRASHED_CAR_EVENT = pygame.USEREVENT + 2
 
-MS = 1000
+SEC = 1000
+
+KILL_CRASHED_CAR_TIME = 1 * SEC
 
 
 class Imitation:
@@ -47,6 +50,7 @@ class Imitation:
 
         self.cars = pygame.sprite.RenderUpdates()
         self.__spawnCarHandler()
+        self.crashed_cars = Queue.Queue()
 
     def __initGrass(self):
         image = pygame.image.load("sprites/Tiles/Grass/land_grass04.png").convert()
@@ -82,7 +86,7 @@ class Imitation:
         newCar.sound = random.choice(self.car_sounds)
         newCar.sound.play(loops=-1)
 
-        time_to_next_spawn = random.randint(self.spawn_inf*1000, self.spawn_sup*1000)
+        time_to_next_spawn = random.randint(self.spawn_inf*SEC, self.spawn_sup*SEC)
         pygame.time.set_timer(SPAWN_CAR_EVENT, time_to_next_spawn)
 
     def __quitHandler(self):
@@ -115,8 +119,13 @@ class Imitation:
 
         for k, v in collisions.iteritems():
             for car in v:
-                if k != car:
+                if k != car and\
+                  (k.state == CarState.OK or car.state == CarState.OK):
                     k.crash(), car.crash()
+                    self.crashed_cars.put(k), self.crashed_cars.put(car)
+
+                    pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, KILL_CRASHED_CAR_TIME)
+
                     self.explosion_sound.play()
 
     def __removeGoneCars(self):
@@ -136,6 +145,11 @@ class Imitation:
                     return
                 elif event.type == SPAWN_CAR_EVENT:
                     self.__spawnCarHandler()
+                elif event.type == KILL_CRASHED_CAR_EVENT:
+                    if not self.crashed_cars.empty():
+                        self.crashed_cars.get().kill()
+                    else:
+                        pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, 0)
 
             self.__checkCrashes()
             self.__removeGoneCars()
