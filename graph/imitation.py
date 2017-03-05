@@ -148,6 +148,13 @@ class Imitation:
         else:
             pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, 0)
 
+    def __slowingHandler(self, event):
+        if event.button == 1:
+            for c in self.cars:
+                if c.collidepoint(event.pos):
+                    c.slowDown(self.slow_factor * c.initial_speed)
+                    return
+
     def __handler(self, event):
         def default(): pass
 
@@ -158,6 +165,8 @@ class Imitation:
             return self.__spawnCarHandler
         elif event.type == KILL_CRASHED_CAR_EVENT:
             return self.__killCrashedCarHandler
+        elif event.type == MOUSEBUTTONDOWN:
+            return lambda: self.__slowingHandler(event)
         else:
             return default
 

@@ -53,11 +53,7 @@ class ConfigGui():
         imitation = Imitation(int(self.speed_inf.get()), int(self.speed_sup.get()),
                               int(self.spawn_inf.get()), int(self.spawn_sup.get()),
                               float(self.slow_factor.get()), int(self.slow_time.get()))
-        try:
-            imitation.loop()
-        except Exception as e:
-            print(e)
-            sys.exit(1)
+        imitation.loop()
 
     def quit(self):
         print("Quitting on user's demand")
