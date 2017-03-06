@@ -20,6 +20,7 @@ FPS_COLOUR = "#F5F53B"
 
 SPAWN_CAR_EVENT = pygame.USEREVENT + 1
 KILL_CRASHED_CAR_EVENT = pygame.USEREVENT + 2
+SPEED_UP_TIMER_EVENT = pygame.USEREVENT + 3
 
 SEC = 1000
 
@@ -53,6 +54,7 @@ class Imitation:
         self.cars = pygame.sprite.RenderUpdates()
         self.__spawnCarHandler()
         self.crashed_cars = Queue.Queue()
+        self.curr_slow_car = None
 
     def __initDisplay(self):
         flags = 0
@@ -149,11 +151,22 @@ class Imitation:
             pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, 0)
 
     def __slowingHandler(self, event):
+        if self.curr_slow_car:
+            print("Only one manual slowing down is permitted")
+            return
+
         if event.button == 1:
             for c in self.cars:
                 if c.collidepoint(event.pos):
                     c.slowDown(self.slow_factor * c.initial_speed)
+                    self.curr_slow_car = c
+                    pygame.time.set_timer(SPEED_UP_TIMER_EVENT, self.slow_time * SEC)
                     return
+
+    def __speedUpHandler(self):
+        pygame.time.set_timer(SPEED_UP_TIMER_EVENT, 0)
+        self.curr_slow_car.speedUp()
+        self.curr_slow_car = None
 
     def __handler(self, event):
         def default(): pass
@@ -165,6 +178,8 @@ class Imitation:
             return self.__spawnCarHandler
         elif event.type == KILL_CRASHED_CAR_EVENT:
             return self.__killCrashedCarHandler
+        elif event.type == SPEED_UP_TIMER_EVENT:
+            return self.__speedUpHandler
         elif event.type == MOUSEBUTTONDOWN:
             return lambda: self.__slowingHandler(event)
         else:

@@ -35,13 +35,13 @@ class Car(moving_object.MovingObject):
     def slowDown(self, wanted_speed):
         if self.state == CarState.OK:
             self.state = CarState.SLOWING_DOWN
-            self.acceleration = np.array((-100, 0), np.float64)
+            self.acceleration = np.array((-50, 0), np.float64)
             self.wanted_speed = np.array(wanted_speed, np.float64)
 
     def speedUp(self):
         if self.state == CarState.OK:
             self.state = CarState.SPEEDING_UP
-            self.acceleration = np.array((100, 0), np.float64)
+            self.acceleration = np.array((50, 0), np.float64)
             self.wanted_speed = self.initial_speed
 
     def update(self, *args):
