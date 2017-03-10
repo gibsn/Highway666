@@ -12,10 +12,18 @@ class ConfigGui():
         self.root.wm_title(title)
         self.root.wm_minsize(width, height)
 
-        self.init_model_params()
-        self.init_buttons()
+        self.__init_prompt()
+        self.__init_model_params()
+        self.__init_buttons()
 
-    def init_buttons(self):
+    def __init_prompt(self):
+        self.prompt_frame = Frame(self.root)
+        self.prompt_frame.pack()
+
+        self.prompt_label = Label(self.prompt_frame, text='Please specify the model parameteres', height=3)
+        self.prompt_label.pack(side='left')
+
+    def __init_buttons(self):
         self.buttons_frame = Frame(self.root)
 
         self.start_button = Button(self.buttons_frame, text='Start', command=self.start)
@@ -26,7 +34,7 @@ class ConfigGui():
 
         self.buttons_frame.pack(side='bottom')
 
-    def init_model_params(self):
+    def __init_model_params(self):
         self.speed_inf_frame, self.speed_inf_label, self.speed_inf = init_speed_inf(self.root)
         self.speed_sup_frame, self.speed_sup_label, self.speed_sup = init_speed_sup(self.root)
 
@@ -42,13 +50,6 @@ class ConfigGui():
         print("Spawn interval: %s to %s" % (self.spawn_inf.get(), self.spawn_sup.get()))
         print("Slowing factor: %s" % (self.slow_factor.get()))
         print("Slowing time: %s" % (self.slow_time.get()))
-
-        # TODO: tkinter is not thread-safe
-        # thread = threading.Thread(target=graph.loop.imitate, args=(
-        #                             self.speed_inf.get(), self.speed_sup.get(),
-        #                             self.spawn_inf.get(), self.spawn_sup.get(),
-        #                             self.slow_factor.get(), self.slow_time.get()))
-        # thread.start()
 
         imitation = Imitation(int(self.speed_inf.get()), int(self.speed_sup.get()),
                               int(self.spawn_inf.get()), int(self.spawn_sup.get()),
@@ -67,7 +68,7 @@ def init_speed_inf(root):
     speed_inf_frame = Frame(root)
     speed_inf_frame.pack(fill=X)
 
-    speed_inf_label = Label(speed_inf_frame, text='Min initial speed:')
+    speed_inf_label = Label(speed_inf_frame, text='Min initial speed [0; 200]:')
     speed_inf_label.pack(side='left')
 
     speed_inf = Spinbox(speed_inf_frame, from_=0, to=200, width=4)
@@ -82,7 +83,7 @@ def init_speed_sup(root):
     speed_sup_frame = Frame(root)
     speed_sup_frame.pack(fill=X)
 
-    speed_sup_label = Label(speed_sup_frame, text='Max initial speed:')
+    speed_sup_label = Label(speed_sup_frame, text='Max initial speed [0; 200]:')
     speed_sup_label.pack(side='left')
 
     speed_sup = Spinbox(speed_sup_frame, from_=0, to=200, width=4)
@@ -97,7 +98,7 @@ def init_spawn_inf(root):
     spawn_inf_frame = Frame(root)
     spawn_inf_frame.pack(fill=X)
 
-    spawn_inf_label = Label(spawn_inf_frame, text='Min spawn interval:')
+    spawn_inf_label = Label(spawn_inf_frame, text='Min spawn interval [0; 10] sec:')
     spawn_inf_label.pack(side='left')
 
     spawn_inf = Spinbox(spawn_inf_frame, from_=0, to=10, width=4)
@@ -112,7 +113,7 @@ def init_spawn_sup(root):
     spawn_sup_frame = Frame(root)
     spawn_sup_frame.pack(fill=X)
 
-    spawn_sup_label = Label(spawn_sup_frame, text='Max spawn interval:')
+    spawn_sup_label = Label(spawn_sup_frame, text='Max spawn interval [0; 10] sec:')
     spawn_sup_label.pack(side='left')
 
     spawn_sup = Spinbox(spawn_sup_frame, from_=0, to=10, width=4)
@@ -127,7 +128,7 @@ def init_slow_factor(root):
     slow_factor_frame = Frame(root)
     slow_factor_frame.pack(fill=X)
 
-    slow_factor_label = Label(slow_factor_frame, text='Slowing factor:')
+    slow_factor_label = Label(slow_factor_frame, text='Slowing factor [0; 1]:')
     slow_factor_label.pack(side='left')
 
     slow_factor = Spinbox(slow_factor_frame, from_=0, to=1, width=4, increment=0.1)
@@ -142,7 +143,7 @@ def init_slow_time(root):
     slow_time_frame = Frame(root)
     slow_time_frame.pack(fill=X)
 
-    slow_time_label = Label(slow_time_frame, text='Slowing time (s):')
+    slow_time_label = Label(slow_time_frame, text='Slowing time [0; 10] sec:')
     slow_time_label.pack(side='left')
 
     slow_time = Spinbox(slow_time_frame, from_=0, to=10, width=4)
