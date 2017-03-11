@@ -11,10 +11,10 @@ from graph import static_object
 
 
 WIDTH = 1280
-HEIGHT = 800
+HEIGHT = 300
 DISPLAY = (WIDTH, HEIGHT)
 
-FPS = 60
+FPS = 30
 FPS_FONT_SIZE = 25
 FPS_COLOUR = "#F5F53B"
 
@@ -45,7 +45,8 @@ class Imitation:
         self.__initCars()
 
     def __initRoad(self):
-        self.road = road.Road((0, HEIGHT/6.0), WIDTH, HEIGHT*2/3.0)
+        k = 3
+        self.road = road.Road((0, HEIGHT*(k/2)/k), WIDTH, HEIGHT/k)
         self.environment = pygame.sprite.RenderUpdates(self.road)
 
     def __initCars(self):
@@ -58,7 +59,7 @@ class Imitation:
 
     def __initDisplay(self):
         flags = 0
-        flags = pygame.HWSURFACE | pygame.FULLSCREEN | pygame.DOUBLEBUF
+        # flags = pygame.HWSURFACE | pygame.FULLSCREEN | pygame.DOUBLEBUF
         self.screen = pygame.display.set_mode(DISPLAY, flags)
         pygame.display.set_caption("Highway666 by Kirill Alekseev")
 
@@ -84,6 +85,7 @@ class Imitation:
 
     def __initSounds(self):
         self.explosion_sound = pygame.mixer.Sound(file="sounds/explosion.ogg")
+        self.brakes_sound = pygame.mixer.Sound(file="sounds/brakes.ogg")
         self.birds_sound = pygame.mixer.Sound(file="sounds/birds.ogg")
         self.car_sounds = [pygame.mixer.Sound(file="sounds/car_"+n+".ogg") for n in ["1", "2", "3"]]
 
@@ -92,6 +94,7 @@ class Imitation:
     def __showFps(self):
         font = pygame.font.Font(None, FPS_FONT_SIZE)
         text = font.render("FPS: %.2f" % (self.clock.get_fps()), 1, pygame.Color(FPS_COLOUR))
+        # print("FPS: %.2f" % (self.clock.get_fps()))
         self.screen.blit(text, (0, 0))
 
         return text.get_rect()
@@ -110,25 +113,51 @@ class Imitation:
 
         return updates
 
-    def __checkCrashes(self):
-        collisions = pygame.sprite.groupcollide(self.cars, self.cars, False, False)
+    def __checkCrash(self, rear_car, front_car):
+        crash = False
+        def __crash(c):
+            c.sound.stop()
+            c.crash()
+            self.crashed_cars.put(c)
 
-        for k, v in collisions.iteritems():
-            for car in v:
-                if k != car and\
-                  (k.state == CarState.OK or car.state == CarState.OK):
-                    k.crash(), car.crash()
-                    self.crashed_cars.put(k), self.crashed_cars.put(car)
+        if pygame.sprite.collide_rect(rear_car, front_car):
+            if front_car.state != CarState.CRASHED:
+                __crash(front_car)
+                crash = True
 
-                    pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, KILL_CRASHED_CAR_TIME)
+            if rear_car.state != CarState.CRASHED:
+                __crash(rear_car)
+                crash = True
 
-                    self.explosion_sound.play()
+            if crash:
+                pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, KILL_CRASHED_CAR_TIME)
+                self.explosion_sound.play()
 
-    def __removeGoneCars(self):
-        for c in self.cars:
-            x, y = c.rect.topleft
-            if x > WIDTH or y > HEIGHT:
-                c.kill()
+    def __maybeSlowDown(self, rear_car, front_car):
+        if pygame.sprite.collide_rect_ratio(3.0)(rear_car, front_car):
+            if rear_car.state == CarState.OK:
+                rear_car.slowDown(front_car.speed)
+                rear_car.front_car = front_car
+
+                self.brakes_sound.play()
+
+    def __carsHandler(self):
+        for car_1 in self.cars:
+            for car_2 in self.cars:
+                if car_1 != car_2:
+                    rear_car = car_1 if car_1.rect.topleft < car_2.rect.topleft else car_2
+                    front_car = car_1 if rear_car != car_1 else car_2
+
+                    self.__checkCrash(rear_car, front_car)
+                    self.__maybeSlowDown(rear_car, front_car)
+
+            car_1.maybeSpeedUp()
+            self.__removeGoneCar(car_1)
+
+    def __removeGoneCar(self, c):
+        x, y = c.rect.topleft
+        if x > WIDTH or y > HEIGHT:
+            c.kill()
 
     def __quitHandler(self):
         print("Got 'quit' from pygame, stopping imitation")
@@ -158,14 +187,17 @@ class Imitation:
         if event.button == 1:
             for c in self.cars:
                 if c.collidepoint(event.pos):
-                    c.slowDown(self.slow_factor * c.initial_speed)
+                    c.manuallySlowDown(self.slow_factor * c.initial_speed)
                     self.curr_slow_car = c
                     pygame.time.set_timer(SPEED_UP_TIMER_EVENT, self.slow_time * SEC)
+
+                    self.brakes_sound.play()
                     return
 
     def __speedUpHandler(self):
         pygame.time.set_timer(SPEED_UP_TIMER_EVENT, 0)
-        self.curr_slow_car.speedUp()
+        if self.curr_slow_car.state != CarState.CRASHED:
+            self.curr_slow_car.speedUp()
         self.curr_slow_car = None
 
     def __handler(self, event):
@@ -192,8 +224,7 @@ class Imitation:
             for event in pygame.event.get():
                 self.__handler(event)()
 
-            self.__checkCrashes()
-            self.__removeGoneCars()
+            self.__carsHandler()
 
             updates = self.__getUpdates()
             updates.append(self.__showFps())
