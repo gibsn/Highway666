@@ -10,7 +10,7 @@ from model.car import CarState
 from graph import static_object
 
 
-WIDTH = 1280
+WIDTH = 1440
 HEIGHT = 300
 DISPLAY = (WIDTH, HEIGHT)
 
@@ -28,10 +28,11 @@ KILL_CRASHED_CAR_TIME = 1 * SEC
 
 
 class Imitation:
-    def __init__(self, speed_inf, speed_sup, spawn_inf, spawn_sup, slow_factor, slow_time):
+    def __init__(self, speed_inf, speed_sup, spawn_inf, spawn_sup, slow_factor, slow_time, range_of_vision):
         self.speed_inf, self.speed_sup = speed_inf, speed_sup
         self.spawn_inf, self.spawn_sup = spawn_inf, spawn_sup
         self.slow_factor, self.slow_time = slow_factor, slow_time
+        self.range_of_vision = range_of_vision
 
         pygame.mixer.pre_init(frequency=44100, channels=8)
         pygame.init()
@@ -59,7 +60,7 @@ class Imitation:
 
     def __initDisplay(self):
         flags = 0
-        # flags = pygame.HWSURFACE | pygame.FULLSCREEN | pygame.DOUBLEBUF
+        flags = pygame.HWSURFACE | pygame.FULLSCREEN | pygame.DOUBLEBUF
         self.screen = pygame.display.set_mode(DISPLAY, flags)
         pygame.display.set_caption("Highway666 by Kirill Alekseev")
 
@@ -115,6 +116,7 @@ class Imitation:
 
     def __checkCrash(self, rear_car, front_car):
         crash = False
+
         def __crash(c):
             c.sound.stop()
             c.crash()
@@ -133,8 +135,8 @@ class Imitation:
                 pygame.time.set_timer(KILL_CRASHED_CAR_EVENT, KILL_CRASHED_CAR_TIME)
                 self.explosion_sound.play()
 
-    def __maybeSlowDown(self, rear_car, front_car):
-        if pygame.sprite.collide_rect_ratio(3.0)(rear_car, front_car):
+    def __maybeSlowDown(self, rear_car, front_car, range_of_vision):
+        if pygame.sprite.collide_rect_ratio(range_of_vision)(rear_car, front_car):
             if rear_car.state == CarState.OK:
                 rear_car.slowDown(front_car.speed)
                 rear_car.front_car = front_car
@@ -149,9 +151,9 @@ class Imitation:
                     front_car = car_1 if rear_car != car_1 else car_2
 
                     self.__checkCrash(rear_car, front_car)
-                    self.__maybeSlowDown(rear_car, front_car)
+                    self.__maybeSlowDown(rear_car, front_car, self.range_of_vision)
 
-            car_1.maybeSpeedUp()
+            car_1.maybeSpeedUp(self.range_of_vision)
             self.__removeGoneCar(car_1)
 
     def __removeGoneCar(self, c):

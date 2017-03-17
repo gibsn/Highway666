@@ -12,6 +12,7 @@ class CarState():
     MANUALLY_SLOWING_DOWN = 4
     MANUALLY_MOVING_SLOW = 5
     SPEEDING_UP = 6
+    KILLED = 7
 
 
 class Car(moving_object.MovingObject):
@@ -27,6 +28,7 @@ class Car(moving_object.MovingObject):
     def kill(self):
         super(Car, self).kill()
         self.sound.fadeout(1000)
+        self.state = CarState.KILLED
 
     def crash(self):
         self.speed = np.array((0, 0), np.float64)
@@ -34,13 +36,16 @@ class Car(moving_object.MovingObject):
 
         self.state = CarState.CRASHED
 
-    def maybeSpeedUp(self):
+    def maybeSpeedUp(self, range_of_vision):
         if self.state == CarState.MOVING_SLOW or\
            self.state == CarState.SLOWING_DOWN:
             if self.front_car:
-                if not pygame.sprite.collide_rect_ratio(3.0)(self, self.front_car):
-                    self.speedUp()
-                    self.front_car = None
+                if pygame.sprite.collide_rect_ratio(range_of_vision)(self, self.front_car) and\
+                   self.front_car.state != CarState.KILLED:
+                    return
+
+            self.speedUp()
+            self.front_car = None
 
     def __slowDown(self, wanted_speed):
         self.acceleration = np.array((-50, 0), np.float64)
@@ -55,7 +60,6 @@ class Car(moving_object.MovingObject):
         self.__slowDown(wanted_speed)
 
     def speedUp(self):
-        print(self.state)
         self.state = CarState.SPEEDING_UP
         self.acceleration = np.array((50, 0), np.float64)
         self.wanted_speed = self.initial_speed

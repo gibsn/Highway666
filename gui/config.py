@@ -1,9 +1,6 @@
-import threading
-import sys
 from Tkinter import Frame, Button, Label, Spinbox, X, Tk
 
 from graph.imitation import Imitation
-
 
 
 class ConfigGui():
@@ -44,16 +41,20 @@ class ConfigGui():
         self.slow_factor_frame, self.slow_factor_label, self.slow_factor = init_slow_factor(self.root)
         self.slow_time_frame, self.slow_time_label, self.slow_time = init_slow_time(self.root)
 
+        self.range_of_vision_frame, self.range_of_vision_label, self.range_of_vision = init_range_of_vision(self.root)
+
     def start(self):
         print("Starting modeling")
         print("Initial speed: %s to %s" % (self.speed_inf.get(), self.speed_sup.get()))
         print("Spawn interval: %s to %s" % (self.spawn_inf.get(), self.spawn_sup.get()))
         print("Slowing factor: %s" % (self.slow_factor.get()))
         print("Slowing time: %s" % (self.slow_time.get()))
+        print("Range of vision: %s" % (self.range_of_vision.get()))
 
         imitation = Imitation(int(self.speed_inf.get()), int(self.speed_sup.get()),
                               int(self.spawn_inf.get()), int(self.spawn_sup.get()),
-                              float(self.slow_factor.get()), int(self.slow_time.get()))
+                              float(self.slow_factor.get()), int(self.slow_time.get()),
+                              int(self.range_of_vision.get()))
         imitation.loop()
 
     def quit(self):
@@ -152,3 +153,18 @@ def init_slow_time(root):
     slow_time.pack(side='right')
 
     return slow_time_frame, slow_time_label, slow_time
+
+
+def init_range_of_vision(root):
+    range_of_vision_frame = Frame(root)
+    range_of_vision_frame.pack(fill=X)
+
+    range_of_vision_label = Label(range_of_vision_frame, text='Range of vision [1; 10] (in cars):')
+    range_of_vision_label.pack(side='left')
+
+    range_of_vision = Spinbox(range_of_vision_frame, from_=1, to=10, width=4)
+    range_of_vision.delete(0, 1)
+    range_of_vision.insert(0, 3)
+    range_of_vision.pack(side='right')
+
+    return range_of_vision_frame, range_of_vision_label, range_of_vision
